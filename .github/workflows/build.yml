@@ -20,10 +20,10 @@ jobs:
 
     - name: Download OpenWrt SDK
       run: |
-        SDK_URL="https://downloads.openwrt.org/releases/23.05.5/targets/rockchip/armv8/openwrt-sdk-23.05.5-rockchip-armv8_gcc-12.3.0_musl.Linux-x86_64.tar.xz"
+        SDK_URL="https://downloads.openwrt.org/releases/23.05.5/targets/sunxi/cortexa53/openwrt-sdk-23.05.5-sunxi-cortexa53_gcc-12.3.0_musl.Linux-x86_64.tar.xz"
         wget -O sdk.tar.xz $SDK_URL
         mkdir sdk
-        tar -xJf sdk.tar.xz -C sdk --strip-components=1
+        tar -xJf sdk.tar.xz -C sdk --strip-components=1    
 
     - name: Copy package to SDK
       run: |
