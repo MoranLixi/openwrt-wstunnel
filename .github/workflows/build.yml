@@ -22,11 +22,8 @@ jobs:
 
     - name: Copy package to SDK (using rsync)
       run: |
-        # 安装 rsync
         sudo apt-get update && sudo apt-get install -y rsync
-        # 创建目标目录
         mkdir -p sdk/package/wstunnel
-        # 使用 rsync 复制，排除 sdk 目录（避免自我复制）和 .git 目录
         rsync -av --exclude='sdk' --exclude='.git' $GITHUB_WORKSPACE/ sdk/package/wstunnel/
 
     - name: Update feeds
@@ -36,8 +33,13 @@ jobs:
         ./scripts/feeds install -a
 
     - name: Build package
+      env:
+        TERM: linux
       run: |
         cd sdk
+        # 生成默认配置，避免交互式菜单
+        make defconfig
+        # 编译你的包
         make package/wstunnel/compile V=99
 
     - name: Upload IPK artifact
