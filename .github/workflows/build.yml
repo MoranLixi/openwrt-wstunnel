@@ -20,11 +20,13 @@ jobs:
         mkdir sdk
         tar -xJf sdk.tar.xz -C sdk --strip-components=1
 
-    - name: Copy package to SDK (using rsync)
+    - name: Link package to SDK
       run: |
-        sudo apt-get update && sudo apt-get install -y rsync
-        mkdir -p sdk/package/wstunnel
-        rsync -av --exclude='sdk' --exclude='.git' $GITHUB_WORKSPACE/ sdk/package/wstunnel/
+        # 创建软链接，让 SDK 的 package 目录指向你的工作空间
+        ln -sf $GITHUB_WORKSPACE sdk/package/wstunnel
+        echo "=== Package linked successfully ==="
+        ls -la sdk/package/
+        ls -la sdk/package/wstunnel/
 
     - name: Update feeds
       run: |
@@ -37,9 +39,9 @@ jobs:
         TERM: linux
       run: |
         cd sdk
-        # 生成默认配置，避免交互式菜单
+        # 生成默认配置
         make defconfig
-        # 编译你的包
+        # 编译软件包
         make package/wstunnel/compile V=99
 
     - name: Upload IPK artifact
