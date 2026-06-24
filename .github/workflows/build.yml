@@ -20,13 +20,14 @@ jobs:
         mkdir sdk
         tar -xJf sdk.tar.xz -C sdk --strip-components=1
 
-    - name: Copy package to SDK
+    - name: Copy package to SDK (using rsync)
       run: |
+        # 安装 rsync
+        sudo apt-get update && sudo apt-get install -y rsync
+        # 创建目标目录
         mkdir -p sdk/package/wstunnel
-        # 复制所有文件到 SDK 包目录
-        cp -r $GITHUB_WORKSPACE/* sdk/package/wstunnel/
-        # 复制隐藏文件（如果有）
-        cp -r $GITHUB_WORKSPACE/.[!.]* sdk/package/wstunnel/ 2>/dev/null || true
+        # 使用 rsync 复制，排除 sdk 目录（避免自我复制）和 .git 目录
+        rsync -av --exclude='sdk' --exclude='.git' $GITHUB_WORKSPACE/ sdk/package/wstunnel/
 
     - name: Update feeds
       run: |
