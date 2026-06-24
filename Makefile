@@ -15,12 +15,12 @@ PKG_LICENSE:=BSD-3-Clause
 include $(INCLUDE_DIR)/package.mk
 
 define Package/$(PKG_NAME)
-    SECTION:=net
-    CATEGORY:=Network
-    TITLE:=WSTunnel Server
-    DEPENDS:=+libc
-    URL:=https://github.com/erebe/wstunnel
-    PKGARCH:=aarch64_cortex-a53          # 强制指定为你路由器的架构
+	SECTION:=net
+	CATEGORY:=Network
+	TITLE:=WSTunnel Server
+	DEPENDS:=+libc
+	URL:=https://github.com/erebe/wstunnel
+	PKGARCH:=aarch64_cortex-a53          # 强制指定为你路由器的架构
 endef
 
 define Package/$(PKG_NAME)/description
