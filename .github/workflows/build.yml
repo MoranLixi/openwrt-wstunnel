@@ -13,6 +13,11 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
+    - name: Clean workspace
+      run: |
+        # 删除可能引起循环的旧 SDK 目录
+        rm -rf sdk
+
     - name: Download OpenWrt SDK
       run: |
         SDK_URL="https://downloads.openwrt.org/releases/23.05.5/targets/rockchip/armv8/openwrt-sdk-23.05.5-rockchip-armv8_gcc-12.3.0_musl.Linux-x86_64.tar.xz"
@@ -22,17 +27,16 @@ jobs:
 
     - name: Copy package to SDK
       run: |
-        # 创建目标目录
+        # 直接复制，不使用软链接，且不复制 .git 目录
         mkdir -p sdk/package/wstunnel
+        # 只复制必要的文件：Makefile 和 files 目录
+        cp -r $GITHUB_WORKSPACE/Makefile sdk/package/wstunnel/
+        cp -r $GITHUB_WORKSPACE/files sdk/package/wstunnel/ 2>/dev/null || true
+        # 如果有 LICENSE 也复制
+        cp -r $GITHUB_WORKSPACE/LICENSE sdk/package/wstunnel/ 2>/dev/null || true
         
-        # 复制工作空间中的包文件（排除 sdk 目录和 .git 目录）
-        # 使用 rsync 的 --exclude 选项来排除不需要的目录
-        sudo apt-get update && sudo apt-get install -y rsync
-        rsync -av --exclude='sdk' --exclude='.git' $GITHUB_WORKSPACE/ sdk/package/wstunnel/
-        
-        echo "=== Package copied successfully ==="
+        echo "=== Package contents ==="
         ls -la sdk/package/wstunnel/
-        ls -la sdk/package/wstunnel/Makefile || echo "Makefile not found!"
 
     - name: Update feeds
       run: |
@@ -45,9 +49,7 @@ jobs:
         TERM: linux
       run: |
         cd sdk
-        # 使用默认配置
         make defconfig
-        # 直接编译
         make package/wstunnel/compile V=99
 
     - name: Upload IPK artifact
