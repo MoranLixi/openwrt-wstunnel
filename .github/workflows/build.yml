@@ -3,8 +3,6 @@ name: Build OpenWrt IPK for wstunnel (aarch64)
 on:
   push:
     branches: [ main, master ]
-  pull_request:
-    branches: [ main, master ]
   workflow_dispatch:
 
 jobs:
@@ -17,18 +15,18 @@ jobs:
 
     - name: Download OpenWrt SDK (aarch64)
       run: |
-        # 下载适用于 aarch64 的 OpenWrt SDK
-        # 使用 OpenWrt 23.05.5 版本，你可以根据需要调整版本号
         SDK_URL="https://downloads.openwrt.org/releases/23.05.5/targets/rockchip/armv8/openwrt-sdk-23.05.5-rockchip-armv8_gcc-12.3.0_musl.Linux-x86_64.tar.xz"
-        
         wget -O sdk.tar.xz $SDK_URL
         mkdir sdk
         tar -xJf sdk.tar.xz -C sdk --strip-components=1
 
     - name: Copy package to SDK
       run: |
-        # 将你的软件包复制到 SDK 的 package 目录
-        cp -r $GITHUB_WORKSPACE sdk/package/wstunnel
+        mkdir -p sdk/package/wstunnel
+        # 复制所有文件到 SDK 包目录
+        cp -r $GITHUB_WORKSPACE/* sdk/package/wstunnel/
+        # 复制隐藏文件（如果有）
+        cp -r $GITHUB_WORKSPACE/.[!.]* sdk/package/wstunnel/ 2>/dev/null || true
 
     - name: Update feeds
       run: |
