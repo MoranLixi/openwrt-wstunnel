@@ -20,29 +20,31 @@ jobs:
         mkdir sdk
         tar -xJf sdk.tar.xz -C sdk --strip-components=1
 
-    - name: Link package to SDK
+    - name: Link package to SDK feeds
       run: |
-        # 创建软链接，让 SDK 的 package 目录指向你的工作空间
-        ln -sf $GITHUB_WORKSPACE sdk/package/wstunnel
-        echo "=== Package linked successfully ==="
-        ls -la sdk/package/
-        ls -la sdk/package/wstunnel/
+        # 将你的包目录链接到 SDK 的 package/feeds 目录下
+        mkdir -p sdk/package/feeds
+        ln -sf $GITHUB_WORKSPACE sdk/package/feeds/wstunnel
+        
+        # 创建一个 feeds 配置文件，告诉系统有一个名为 wstunnel 的本地 feed
+        echo "src-link wstunnel $GITHUB_WORKSPACE" >> sdk/feeds.conf.default
 
-    - name: Update feeds
+    - name: Update and install feeds
       run: |
         cd sdk
+        # 更新 feeds（现在你的包会被检测到）
         ./scripts/feeds update -a
-        ./scripts/feeds install -a
+        # 关键：安装 wstunnel 这个 feed
+        ./scripts/feeds install wstunnel
 
     - name: Build package
       env:
         TERM: linux
       run: |
         cd sdk
-        # 生成默认配置
         make defconfig
-        # 编译软件包
-        make package/wstunnel/compile V=99
+        # 现在应该能找到这个包了
+        make package/feeds/wstunnel/compile V=99
 
     - name: Upload IPK artifact
       uses: actions/upload-artifact@v4
