@@ -4,7 +4,8 @@ PKG_NAME:=wstunnel
 PKG_VERSION:=10.5.5
 PKG_RELEASE:=1
 
-PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
+# 直接指定正确的文件名
+PKG_SOURCE:=wstunnel_$(PKG_VERSION)_linux_arm64.tar.gz
 PKG_SOURCE_URL:=https://github.com/erebe/wstunnel/releases/download/v$(PKG_VERSION)/
 PKG_HASH:=skip
 
@@ -25,11 +26,10 @@ define Package/$(PKG_NAME)/description
 	WSTunnel is a tool for tunneling traffic over WebSocket.
 endef
 
+# 由于 OpenWrt 会自动下载和解压，Build/Prepare 可以简化
 define Build/Prepare
 	mkdir -p $(PKG_BUILD_DIR)
-	wget -O $(PKG_BUILD_DIR)/wstunnel_$(PKG_VERSION)_linux_arm64.tar.gz \
-		https://github.com/erebe/wstunnel/releases/download/v$(PKG_VERSION)/wstunnel_$(PKG_VERSION)_linux_arm64.tar.gz
-	tar -xzf $(PKG_BUILD_DIR)/wstunnel_$(PKG_VERSION)_linux_arm64.tar.gz -C $(PKG_BUILD_DIR)/
+	tar -xzf $(DL_DIR)/$(PKG_SOURCE) -C $(PKG_BUILD_DIR)/
 	chmod +x $(PKG_BUILD_DIR)/wstunnel
 endef
 
