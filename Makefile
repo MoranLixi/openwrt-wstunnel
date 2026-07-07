@@ -1,7 +1,7 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=wstunnel
-PKG_VERSION:=10.5.5
+PKG_VERSION:=10.6.1
 PKG_RELEASE:=1
 
 PKG_SOURCE:=wstunnel_$(PKG_VERSION)_linux_arm64.tar.gz
