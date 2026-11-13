@@ -110,16 +110,16 @@ jobs:
     - name: Upload IPK artifact
       uses: actions/upload-artifact@v4
       with:
-        name: wstunnel-aarch64
+        name: wstunnel-aarch64-${{ needs.check-version.outputs.version }}
         path: sdk/bin/packages/*/*/wstunnel*.ipk
         if-no-files-found: error
 
   # 新增的发布任务
   release:
     needs: [check-version, build]
-    # 只在版本有变化（或手动/推送触发）且 build 成功时发布
     if: |
-      always() && needs.build.result == 'success' &&
+      always() && 
+      needs.build.result == 'success' &&
       (github.event_name != 'schedule' || needs.check-version.outputs.changed == 'true')
     runs-on: ubuntu-latest
     permissions:
