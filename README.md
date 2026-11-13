@@ -14,14 +14,18 @@
 
 ## 目录结构
 
-```
+```text
 .
- Makefile
- files/
-    etc/
-        config/wstunnel
-        init.d/wstunnel
- .github/workflows/build.yml
+├── Makefile
+├── files/
+│   └── etc/
+│       ├── config/
+│       │   └── wstunnel
+│       └── init.d/
+│           └── wstunnel
+└── .github/
+    └── workflows/
+        └── build.yml
 ```
 
 ## 安装
