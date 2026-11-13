@@ -1,24 +1,24 @@
 # /etc/config/wstunnel
-# UCI 配置文件 for wstunnel server
+# UCI config file for wstunnel server
 
 config wstunnel 'server'
-    # 是否启用服务，可选值: 1 (启用) / 0 (禁用)
+    # Whether enable service, optional value: 1 (enable) / 0 (disable)
     option enabled '1'
 
-    # 监听地址和端口 (默认: wss://0.0.0.0:443)
+    # Listen address and port (default: wss://0.0.0.0:443)
     option listen_addr 'wss://0.0.0.0:443'
 
-    # 路径前缀认证密钥 (对应 --restrict-http-upgrade-path-prefix)
+    # Path prefix auth secret (correspond to --restrict-http-upgrade-path-prefix)
     option secret 'secret'
 
-    # 限制转发到的目标地址 (对应 --restrict-to)
-    # 格式: host:port，可以添加多个，用空格分隔
+    # Restrict forward to target address (correspond to --restrict-to)
+    # Format: host:port, can add multiple, use space to separate
     option restrict_to 'localhost:51820'
 
-    # 日志级别 (可选: TRACE, DEBUG, INFO, WARN, ERROR, OFF)
+    # Log level (optional: TRACE, DEBUG, INFO, WARN, ERROR, OFF)
     option log_level 'INFO'
 
-    # TLS 证书文件路径 (可选，用于自定义证书)
+    # TLS certificate file path (optional, use for custom certificate)
     # option tls_certificate '/etc/wstunnel/server.crt'
-    # TLS 私钥文件路径 (可选)
+    # TLS private key file path (optional)
     # option tls_private_key '/etc/wstunnel/server.key'

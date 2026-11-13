@@ -3,15 +3,70 @@ name: Build OpenWrt IPK for wstunnel (aarch64)
 on:
   push:
     branches: [ main, master ]
+  schedule:
+    - cron: '0 6 * * *'      # 每天 6 点检查上游
   workflow_dispatch:
 
+permissions:
+  contents: write            # 允许自动提交和发布 Release
+
 jobs:
+  check-version:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.ver.outputs.version }}
+      changed: ${{ steps.ver.outputs.changed }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+          fetch-depth: 0
+
+      - name: Get latest upstream tag
+        id: upstream
+        run: |
+          LATEST=$(curl -sL https://api.github.com/repos/erebe/wstunnel/releases/latest \
+            | jq -r '.tag_name' | sed 's/^v//')
+          echo "latest=$LATEST" >> $GITHUB_OUTPUT
+
+      - name: Compare with Makefile
+        id: ver
+        run: |
+          CURRENT=$(grep '^PKG_VERSION:=' Makefile | cut -d= -f2 | tr -d ' ')
+          LATEST='${{ steps.upstream.outputs.latest }}'
+          echo "current=$CURRENT latest=$LATEST"
+          if [ -z "$LATEST" ] || [ "$LATEST" = "null" ]; then
+            echo "changed=false" >> $GITHUB_OUTPUT
+            echo "version=$CURRENT" >> $GITHUB_OUTPUT
+          elif [ "$LATEST" != "$CURRENT" ]; then
+            sed -i "s/^PKG_VERSION:=.*/PKG_VERSION:=$LATEST/" Makefile
+            echo "changed=true" >> $GITHUB_OUTPUT
+            echo "version=$LATEST" >> $GITHUB_OUTPUT
+          else
+            echo "changed=false" >> $GITHUB_OUTPUT
+            echo "version=$CURRENT" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Commit and push
+        if: steps.ver.outputs.changed == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git commit -am "wstunnel: update to ${{ steps.ver.outputs.version }}"
+          git push
+
   build:
+    needs: check-version
+    # 手动/推送时始终编译；定时触发时只有版本变化才编译
+    if: github.event_name != 'schedule' || needs.check-version.outputs.changed == 'true'
     runs-on: ubuntu-latest
 
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
+      with:
+        ref: ${{ github.ref_name }}
+        fetch-depth: 0
 
     - name: Clean workspace
       run: |
@@ -61,8 +116,11 @@ jobs:
 
   # 新增的发布任务
   release:
-    needs: [build]
-    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [check-version, build]
+    # 只在版本有变化（或手动/推送触发）且 build 成功时发布
+    if: |
+      always() && needs.build.result == 'success' &&
+      (github.event_name != 'schedule' || needs.check-version.outputs.changed == 'true')
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -70,12 +128,15 @@ jobs:
       - name: Download IPK artifact
         uses: actions/download-artifact@v4
         with:
-          name: wstunnel-aarch64
+          name: wstunnel-aarch64-${{ needs.check-version.outputs.version }}
           path: ./ipk-files
+
       - name: Create Release and Upload IPK
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
-          name: "wstunnel OpenWrt 包 ${{ github.ref_name || 'Latest Build' }}"
+          tag_name: v${{ needs.check-version.outputs.version }}
+          name: "wstunnel OpenWrt 包 v${{ needs.check-version.outputs.version }}"
           files: ./ipk-files/*.ipk
+          make_latest: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

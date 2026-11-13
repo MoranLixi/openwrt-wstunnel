@@ -5,17 +5,17 @@ START=99
 STOP=99
 USE_PROCD=1
 
-# 定义二进制文件路径
+# Define binary file path
 WSTUNNEL_BIN="/usr/bin/wstunnel"
 
 start_service() {
-    # 检查二进制文件是否存在
+    # Check binary file whether exist
     [ -x "$WSTUNNEL_BIN" ] || {
         echo "Error: $WSTUNNEL_BIN not found or not executable"
         return 1
     }
 
-    # 读取 UCI 配置
+    # Read UCI config
     config_load wstunnel
     config_get enabled server enabled '0'
     config_get listen_addr server listen_addr 'wss://0.0.0.0:443'
@@ -25,25 +25,25 @@ start_service() {
     config_get tls_cert server tls_certificate ''
     config_get tls_key server tls_private_key ''
 
-    # 检查是否启用
+    # Check whether enabled
     [ "$enabled" -eq 0 ] && return 1
 
-    # 构建启动参数
+    # Build start parameters
     local args="server"
     args="$args --restrict-http-upgrade-path-prefix $secret"
     args="$args --restrict-to $restrict_to"
     args="$args --log-lvl $log_level"
 
-    # 如果提供了自定义 TLS 证书和密钥，添加到参数中
+    # If provided custom TLS certificate and key, add to parameters
     [ -n "$tls_cert" ] && [ -n "$tls_key" ] && {
         args="$args --tls-certificate $tls_cert"
         args="$args --tls-private-key $tls_key"
     }
 
-    # 最后添加监听地址
+    # Finally add listen address
     args="$args $listen_addr"
 
-    # 使用 procd 启动守护进程
+    # Use procd to start daemon process
     procd_open_instance
     procd_set_param command "$WSTUNNEL_BIN"
     procd_append_param command $args
@@ -56,6 +56,6 @@ start_service() {
 }
 
 stop_service() {
-    # procd 会自动处理停止
+    # procd will auto handle stop
     echo "Stopping wstunnel server..."
 }
