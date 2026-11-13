@@ -135,15 +135,15 @@ jobs:
         id: ipk
         run: |
           IPK=$(find ./ipk-files -name '*.ipk' | head -n 1)
+          echo "Found: $IPK"
           echo "path=$IPK" >> $GITHUB_OUTPUT
-          ls -la "$IPK"
 
       - name: Create Release and Upload IPK
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ needs.check-version.outputs.version }}
-          name: "wstunnel for OpenWrt v${{ needs.check-version.outputs.version }}"
-          files: ./ipk-files/*.ipk
+          name: "wstunnel for OpenWrt v${{ needs.check-version.outputs.version }} (aarch64_cortex-a53)"
+          files: ${{ steps.ipk.outputs.path }}
           make_latest: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
